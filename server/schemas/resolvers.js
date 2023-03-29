@@ -1,6 +1,6 @@
-const { AuthenticationError } = require('apollo-server-express');
-const { User } = require('../models');
-const { signToken } = require('../utils/auth');
+const { AuthenticationError } = require("apollo-server-express");
+const { User } = require("../models");
+const { signToken } = require("../utils/auth");
 
 const resolvers = {
   Query: {
@@ -9,7 +9,7 @@ const resolvers = {
       if (context.user) {
         return User.findOne({ _id: context.user._id });
       }
-      throw new AuthenticationError('You need to be logged in!');
+      throw new AuthenticationError("You need to be logged in!");
     },
   },
 
@@ -24,21 +24,23 @@ const resolvers = {
       const user = await User.findOne({ email });
 
       if (!user) {
-        throw new AuthenticationError('No user with this email found!');
+        throw new AuthenticationError("Incorrect Credentials!!");
       }
 
       const correctPw = await user.isCorrectPassword(password);
 
       if (!correctPw) {
-        throw new AuthenticationError('Incorrect password!');
+        throw new AuthenticationError("Incorrect Credentials!!");
       }
 
       const token = signToken(user);
+
       return { token, user };
     },
 
     // Add a third argument to the resolver to access data in our `context`
-    saveBook: async (parent, { book }, context) => {
+    saveBook: async (parent,{ authors, description, title, bookId, image }, context) => {
+      const book = { authors, description, title, bookId, image}
       // If context has a `user` property, that means the user executing this mutation has a valid JWT and is logged in
       if (context.user) {
         return User.findOneAndUpdate(
@@ -53,18 +55,18 @@ const resolvers = {
         );
       }
       // If user attempts to execute this mutation and isn't logged in, throw an error
-      throw new AuthenticationError('You need to be logged in!');
+      throw new AuthenticationError("You need to be logged in!");
     },
     // Make it so a logged in user can only remove a book from their own user
-    removeBook: async (parent, { book }, context) => {
+    removeBook: async (parent, { bookId }, context) => {
       if (context.user) {
         return User.findOneAndUpdate(
           { _id: context.user._id },
-          { $pull: { books: book } },
+          { $pull: { savedBooks: { bookId: {$eq:bookId}} } },
           { new: true }
         );
       }
-      throw new AuthenticationError('You need to be logged in!');
+      throw new AuthenticationError("You need to be logged in!");
     },
   },
 };
