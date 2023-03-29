@@ -2,9 +2,6 @@ const express = require("express");
 const path = require("path");
 const db = require("./config/connection");
 
-//REST API cleanup
-//const routes = require('./routes');
-
 //Apollo Server
 const { ApolloServer } = require("apollo-server-express");
 const { typeDefs, resolvers } = require("./schemas");
